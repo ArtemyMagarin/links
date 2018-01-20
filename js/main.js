@@ -15,7 +15,7 @@ var processingData = function(res) {
 	let raw_links = text.match(exp);
 
 	links = raw_links.map((item) => {
-		return decodeURI(item).replace(/(https?)?(ftp)?(:\/\/)?(www\.)?/ig,"")
+		return item.replace(/(https?)?(ftp)?(:\/\/)?(www\.)?/ig,"")
 	})
 
 	links_tree = getLinksTree(links);
