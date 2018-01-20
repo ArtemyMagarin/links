@@ -25,7 +25,7 @@ var processingData = function(text) {
     links_tree = getLinksTree(links);
     censored_links_tree = censor(links_tree, bad_urls);
 
-    interface(censored_links_tree, 'main');
+    render(censored_links_tree);
 }
 
 var getLinksTree = function(links) {
@@ -66,39 +66,80 @@ var getLinksTree = function(links) {
     return links_tree
 }
 
+var getAccordionElement = function(header, links) {
+    let title = header;
+    header = header.replace(/[^\w\dа-яё]/ig, '');
 
-function interface_number(array, id_name) {
+    let card = document.createElement("div");
+    card.className = "card";
 
-	var new_element = "<ul><h6>"+array[0]+"</h6><span class='badge badge-pill badge-info' float='right'>"+array[1]+"</span>";
-	// var new_element = "<div name='d_"+array[0]+"'><header>"+array[0]+"</header><count>"+array[1]+"</count></div>";
-	$("div[id='c_"+id_name+"'").children().append(new_element);
+    let cardHeader = document.createElement("div");
+    cardHeader.className = "card-header";
+    cardHeader.setAttribute("role", "tab");
+    cardHeader.setAttribute("id", "heading_"+header);
 
+    let cardHeaderTitle = document.createElement("h5");
+    cardHeaderTitle.className = "mb-0";
+
+    let cardHeaderTitleLink = document.createElement("a");
+    cardHeaderTitleLink.setAttribute('data-toggle', 'collapse');
+    cardHeaderTitleLink.setAttribute('data-parent', '#d_main');
+    cardHeaderTitleLink.setAttribute('href', '#collapse_'+header);
+    cardHeaderTitleLink.setAttribute('aria-expanded', 'true'); // true - open, false - close
+    cardHeaderTitleLink.setAttribute('aria-controls', '#collapse_'+header);
+    cardHeaderTitleLink.innerText = title;
+
+    let cardHeaderTitleCounter = document.createElement('span');
+        cardHeaderTitleCounter.className = 'badge badge-info';
+        cardHeaderTitleCounter.style.float = "right";
+        cardHeaderTitleCounter.innerText = links.reduce((count, item)=>{
+            return count+=item[1]
+        }, 0);
+
+
+
+    cardHeaderTitle.appendChild(cardHeaderTitleLink);
+    cardHeaderTitle.appendChild(cardHeaderTitleCounter);
+    cardHeader.appendChild(cardHeaderTitle);
+    card.appendChild(cardHeader);
+
+    let cardBody = document.createElement('div');
+    cardBody.className = "collapse";
+    cardBody.setAttribute('id', 'collapse_'+header);
+    cardBody.setAttribute('role', 'tabpanel');
+    cardBody.setAttribute('aria-labelledby', 'heading_'+header);
+
+    links.forEach((item)=>{
+        let cardBodyBlock = document.createElement('div');
+        cardBodyBlock.className = "card-block";
+
+        let cardBodyBlockLink = document.createElement('a');
+        cardBodyBlockLink.href = "#";
+        cardBodyBlockLink.innerText = item[0];
+
+
+        let cardBodyBlockCounter = document.createElement('span');
+        cardBodyBlockCounter.className = 'badge badge-info';
+        cardBodyBlockCounter.style.float = "right";
+        cardBodyBlockCounter.style.fontSize = "1em";
+        cardBodyBlockCounter.innerText = item[1];
+
+        cardBodyBlock.appendChild(cardBodyBlockLink)
+        cardBodyBlock.appendChild(cardBodyBlockCounter)
+        cardBody.appendChild(cardBodyBlock);
+    })
+
+    card.appendChild(cardBody);
+
+    return card
 }
 
 
-
-
-function interface(array, id_name) {
-   if (!Array.isArray(array)) {
-		for (header in array) {
-
-			var new_element = "<div class='card'><div class='card-header'role='tab' id='d_"+header+"'><h5 class='mb-0'><a data-toggle='collapse' data-parent='#d_main' href='#c_"+header+"' aria-expanded='true' aria-controls='c_"+header+"'>"+header+"</a></h5></div>";
-			new_element += "<div id='c_"+header+"' class='collapse show' role='tabpanel' aria-labelledby='d_"+header+"'><div class='card-block'></div></div></div>";
-
-			// var new_element = "<div name='d_"+header+"'><header>"+header+"</header></div>";
-			$("div[id='d_"+id_name+"'").append(new_element);									
-			interface(array[header], header);
-		}
-	} else {
-		for (header in array) {						
-			if (typeof(array[header][1]) === "number") {							
-				interface_number(array[header], id_name);
-			} else {
-				
-				interface(array[header], id_name);
-			}
-		}
-	}				
+function render(obj) {
+    let accordion = document.getElementById('d_main');
+    for (key in obj) {
+        accordion.appendChild(getAccordionElement(key, obj[key]))
+    }
 };  
 
 var censor = function(links_tree, bad_urls) {
@@ -107,7 +148,7 @@ var censor = function(links_tree, bad_urls) {
     bad_urls.forEach((bad_url) => {
         for (key in links_tree) {
             links_tree[key] = links_tree[key].map((item)=>{
-                if (~item[0].indexOf(bad_url)) {
+                if (bad_url && ~item[0].indexOf(bad_url)) {
                     return ['[censored]', item[1]]
                 } else {
                     return item
