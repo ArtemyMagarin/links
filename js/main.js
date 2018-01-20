@@ -68,30 +68,38 @@ var getLinksTree = function(links) {
 
 
 function interface_number(array, id_name) {
-    var new_element = "<div name='d_"+array[0]+"'><header>"+array[0]+"</header><count>"+array[1]+"</count></div>";
-    $("div[name='d_"+id_name+"'").append(new_element);
+
+	var new_element = "<ul><h6>"+array[0]+"</h6><span class='badge badge-pill badge-info' float='right'>"+array[1]+"</span>";
+	// var new_element = "<div name='d_"+array[0]+"'><header>"+array[0]+"</header><count>"+array[1]+"</count></div>";
+	$("div[id='c_"+id_name+"'").children().append(new_element);
+
 }
 
-function interface(array, id_name) {
-    
-    if (!Array.isArray(array)) {
-        for (header in array) {                 
-            var new_element = "<div name='d_"+header+"'><header>"+header+"</header></div>";
-            $("div[name='d_"+id_name+"'").append(new_element);                                  
-            interface(array[header], header);
-        }
-    } else {
-        for (header in array) {                     
-            if (typeof(array[header][1]) === "number") {                            
-                interface_number(array[header], id_name);
-            } else {
-                
-                interface(array[header], id_name);
-            }
-        }
-    }               
-};
 
+
+
+function interface(array, id_name) {
+   if (!Array.isArray(array)) {
+		for (header in array) {
+
+			var new_element = "<div class='card'><div class='card-header'role='tab' id='d_"+header+"'><h5 class='mb-0'><a data-toggle='collapse' data-parent='#d_main' href='#c_"+header+"' aria-expanded='true' aria-controls='c_"+header+"'>"+header+"</a></h5></div>";
+			new_element += "<div id='c_"+header+"' class='collapse show' role='tabpanel' aria-labelledby='d_"+header+"'><div class='card-block'></div></div></div>";
+
+			// var new_element = "<div name='d_"+header+"'><header>"+header+"</header></div>";
+			$("div[id='d_"+id_name+"'").append(new_element);									
+			interface(array[header], header);
+		}
+	} else {
+		for (header in array) {						
+			if (typeof(array[header][1]) === "number") {							
+				interface_number(array[header], id_name);
+			} else {
+				
+				interface(array[header], id_name);
+			}
+		}
+	}				
+};  
 
 var censor = function(links_tree, bad_urls) {
     links_tree = JSON.parse(JSON.stringify(links_tree)); //make a copy 
