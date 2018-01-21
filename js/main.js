@@ -14,18 +14,49 @@ var processingData = function(text) {
                             return item.replace(/(https?)?(ftp)?(:\/\/)?(www\.)?/ig,"")
                         });
 
+
     let exp = /(https?)?(ftp)?(:\/\/)?(www)?\.?([a-zA-Zа-яА-ЯёЁ0-9-]+\.)+?[a-zрф]{2,3}[/?]?[a-zA-Zа-яА-ЯёЁ0-9-=%&.,/_?]*(?=["' ]|\n)/ig;                
     
+    let links_info = {};  
+    let links = [];  
     let raw_links = text.match(exp);
 
-    links = raw_links.map((item) => {
-        return item.replace(/(https?)?(ftp)?(:\/\/)?(www\.)?/ig,"")
+    raw_links.forEach((item)=>{
+        links_info[item] = [item.replace(/(https?)?(ftp)?(:\/\/)?(www\.)?/ig,"")];
+        links.push(item.replace(/(https?)?(ftp)?(:\/\/)?(www\.)?/ig,""))
     })
 
     links_tree = getLinksTree(links);
-    censored_links_tree = censor(links_tree, bad_urls);
+    censored_links_tree = censor(links_tree, bad_urls, links_info);
 
     render(censored_links_tree);
+
+    $(".changeLink").on('click', (event)=>{
+
+        div1 = document.createElement('div'),
+        input = document.createElement('input'),
+        div2 = document.createElement('div'),
+        button = document.createElement('button')
+
+        div1.className = "input-group";      
+        input.setAttribute('type', 'text');
+        input.setAttribute('class', 'form-control')
+        input.setAttribute('placeholder', event.target.innerText);
+        input.setAttribute('aria-label', event.target.innerText);
+        input.setAttribute('aria-describedby', 'basic-addon1');
+        div2.className = "input-group-append";
+        button.setAttribute('type', 'button');
+        button.setAttribute('class', 'btn btn-primary')
+        button.innerText = "Replace"
+
+        div2.appendChild(button);
+        div1.appendChild(input);
+        div1.appendChild(div2);
+
+        $(event.target).replaceWith(div1);
+
+    })
+
 }
 
 var getLinksTree = function(links) {
@@ -109,26 +140,42 @@ var getAccordionElement = function(header, links) {
     cardBody.setAttribute('role', 'tabpanel');
     cardBody.setAttribute('aria-labelledby', 'heading_'+header);
 
-    links.forEach((item)=>{
-        let cardBodyBlock = document.createElement('div');
+    let cardBodyBlock = document.createElement('div');
         cardBodyBlock.className = "card-block";
 
+    links.forEach((item)=>{
+        let row = document.createElement('div'),
+            col1 = document.createElement('div'),
+            col2 = document.createElement('div');
+
+        row.className = "row mb-2";
+        col1.className = 'col-10';
+        col2.className = 'col-2';
+
         let cardBodyBlockLink = document.createElement('a');
+        cardBodyBlockLink.className = "changeLink mb-1 mt-1"
         cardBodyBlockLink.href = "#";
         cardBodyBlockLink.innerText = item[0];
+        cardBodyBlockLink.style.fontSize = '1.3em'
+
+        col1.appendChild(cardBodyBlockLink)
 
 
         let cardBodyBlockCounter = document.createElement('span');
         cardBodyBlockCounter.className = 'badge badge-info';
         cardBodyBlockCounter.style.float = "right";
-        cardBodyBlockCounter.style.fontSize = "1em";
+        cardBodyBlockCounter.style.fontSize = "1.3em";
         cardBodyBlockCounter.innerText = item[1];
 
-        cardBodyBlock.appendChild(cardBodyBlockLink)
-        cardBodyBlock.appendChild(cardBodyBlockCounter)
-        cardBody.appendChild(cardBodyBlock);
+        col2.appendChild(cardBodyBlockCounter);
+
+        row.appendChild(col1);
+        row.appendChild(col2);
+
+        cardBodyBlock.appendChild(row)    
     })
 
+    cardBody.appendChild(cardBodyBlock);
     card.appendChild(cardBody);
 
     return card
@@ -142,15 +189,29 @@ function render(obj) {
     }
 };  
 
-var censor = function(links_tree, bad_urls) {
+var censor = function(links_tree, bad_urls, links_info) {
     links_tree = JSON.parse(JSON.stringify(links_tree)); //make a copy 
     
     bad_urls.forEach((bad_url) => {
         for (key in links_tree) {
             links_tree[key] = links_tree[key].map((item)=>{
                 if (bad_url && ~item[0].indexOf(bad_url)) {
+
+                    for (link in links_info) {
+                        if (links_info[link][0] === item[0]) {
+                            links_info[link][1] = '[censored]'
+                        }
+                    }
+
                     return ['[censored]', item[1]]
                 } else {
+
+                    for (link in links_info) {
+                        if (links_info[link][0] === item[0]) {
+                            links_info[link][1] = item[0]
+                        }
+                    }
+
                     return item
                 }
             })
@@ -158,4 +219,22 @@ var censor = function(links_tree, bad_urls) {
     });
 
     return links_tree
+}
+
+var setReplacedLink = function(links_info, link, replaced_link) {
+    if (link !== "[censored]") {
+        for (key in links_info) {
+            if (links_info[key][0] === link) {
+                links_info[key][1] = replaced_link
+            }
+        }
+    }
+}
+
+var getReplacedText = function(text, links_info) {
+    for (key in links_info) {
+        text.replace(key, links_info[key][1])
+    };
+
+    return text
 }

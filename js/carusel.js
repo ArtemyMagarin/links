@@ -26,6 +26,25 @@ $(function(){
 
 	}
 
+	$.slideToStep = function(stN){
+		
+		stepNum = stN;
+		
+		$('#step1').animate({
+			'left': (0-stepNum * $('body').width())+'px'
+		}, $('body').width())
+		$('#step2').animate({
+			'left': ((1-stepNum) * $('body').width())+'px'
+		}, $('body').width())
+		$('#step3').animate({
+			'left': ((2-stepNum) * $('body').width())+'px'
+		}, $('body').width())
+		$('#step4').animate({
+			'left': ((3-stepNum) * $('body').width())+'px'
+		}, $('body').width())
+
+	}
+
 	$('.nextButton').on('click', $.slideSwitch)
 
 	$(window).on('resize', function() {stepNum--; $.slideSwitch();})
