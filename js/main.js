@@ -1,3 +1,9 @@
+$('#go-step3').on('click', (event)=>{
+    event.preventDefault();
+    detect(processingData)
+})
+
+
 var detect = function(callback) {
     let input = document.getElementById('file-input');
     let reader = new FileReader();
@@ -8,6 +14,7 @@ var detect = function(callback) {
 };
 
 var processingData = function(text) {
+
     let bad_urls = document.getElementById('stop-list').value
                         .split('\n')
                         .map((item)=>{
@@ -31,7 +38,7 @@ var processingData = function(text) {
 
     render(censored_links_tree);
 
-    $(".changeLink").on('click', (event)=>{
+    $('#d_main').on('click', 'a.changeLink', (event)=>{
 
         div1 = document.createElement('div'),
         input = document.createElement('input'),
@@ -42,11 +49,12 @@ var processingData = function(text) {
         input.setAttribute('type', 'text');
         input.setAttribute('class', 'form-control')
         input.setAttribute('placeholder', event.target.innerText);
+        input.setAttribute('value', event.target.innerText);
         input.setAttribute('aria-label', event.target.innerText);
-        input.setAttribute('aria-describedby', 'basic-addon1');
+        input.setAttribute('data-value', event.target.innerText);
         div2.className = "input-group-append";
         button.setAttribute('type', 'button');
-        button.setAttribute('class', 'btn btn-primary')
+        button.setAttribute('class', 'btn btn-primary save')
         button.innerText = "Replace"
 
         div2.appendChild(button);
@@ -56,6 +64,51 @@ var processingData = function(text) {
         $(event.target).replaceWith(div1);
 
     })
+
+    $('#d_main').on('click', 'button.save', (event)=>{
+        let input = $(event.target).closest('.input-group').find('input');
+        let old_link = $(input).attr('data-value');
+        let new_link = $(input).val();
+        console.log(old_link, new_link)
+
+        replaceLink(links_info, old_link, new_link);
+
+        let cardBodyBlockLink = document.createElement('a');
+        cardBodyBlockLink.className = "changeLink mb-1 mt-1"
+        cardBodyBlockLink.href = "#";
+        cardBodyBlockLink.innerText = new_link;
+        cardBodyBlockLink.style.fontSize = '1.3em'
+
+        $(event.target).closest('.input-group').replaceWith(cardBodyBlockLink);
+        console.log(links_info)
+
+    })
+
+
+    $('#go-step4').on('click', (event)=>{
+        event.preventDefault();
+        text = getReplacedText(text, links_info);
+        console.log(links_info)
+        var textFile = null,
+            makeTextFile = function (text) {
+            var data = new Blob([text], {type: 'text/plain'});
+
+            if (textFile !== null) {
+              window.URL.revokeObjectURL(textFile);
+            }
+
+            textFile = window.URL.createObjectURL(data);
+
+            return textFile;
+        };
+
+        let downloadLink = document.getElementById('save');
+        downloadLink.href = makeTextFile(text);
+        downloadLink.setAttribute('download', 'file.txt')
+
+    })
+
+
 
 }
 
@@ -109,7 +162,7 @@ var getAccordionElement = function(header, links) {
     cardHeader.setAttribute("role", "tab");
     cardHeader.setAttribute("id", "heading_"+header);
 
-    let cardHeaderTitle = document.createElement("h5");
+    let cardHeaderTitle = document.createElement("h3");
     cardHeaderTitle.className = "mb-0";
 
     let cardHeaderTitleLink = document.createElement("a");
@@ -184,6 +237,7 @@ var getAccordionElement = function(header, links) {
 
 function render(obj) {
     let accordion = document.getElementById('d_main');
+    accordion.innerHTML = "";
     for (key in obj) {
         accordion.appendChild(getAccordionElement(key, obj[key]))
     }
@@ -221,11 +275,11 @@ var censor = function(links_tree, bad_urls, links_info) {
     return links_tree
 }
 
-var setReplacedLink = function(links_info, link, replaced_link) {
+var replaceLink = function(links_info, old_link, new_link) {
     if (link !== "[censored]") {
         for (key in links_info) {
-            if (links_info[key][0] === link) {
-                links_info[key][1] = replaced_link
+            if (links_info[key][0] === old_link) {
+                links_info[key][1] = new_link
             }
         }
     }
@@ -233,7 +287,21 @@ var setReplacedLink = function(links_info, link, replaced_link) {
 
 var getReplacedText = function(text, links_info) {
     for (key in links_info) {
-        text.replace(key, links_info[key][1])
+
+        if (links_info[key][0] == links_info[key][1]) {
+            continue
+        }
+        
+        exp = "(?<=[\"' ]|\n)"+key+"(?=[\"' ]|\n)";
+        regexp = new RegExp(exp, 'ig')
+
+        if (links_info[key][1] !== '[censored]' && ~links_info[key][1].search(/(https?)?(ftp)?(:\/\/)?(www)?\.?([a-zA-Zа-яА-ЯёЁ0-9-]+\.)+?[a-zрф]{2,3}[/?]?[a-zA-Zа-яА-ЯёЁ0-9-=%&.,/_?]*/i)) {
+            sub = ~links_info[key][1].indexOf(/^https?/ig) ? "" : (key.match(/https?:\/\//ig)||['http://'])[0];
+            text = text.replace(regexp, sub+links_info[key][1])
+        } else {
+            text = text.replace(regexp, links_info[key][1])
+        }
+
     };
 
     return text

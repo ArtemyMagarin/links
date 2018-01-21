@@ -26,9 +26,8 @@ $(function(){
 
 	}
 
-	$.slideToStep = function(stN){
-		
-		stepNum = stN;
+	$.slideToStep = function(event){
+		stepNum = $(event.target).attr('data-slideto')-1;
 		
 		$('#step1').animate({
 			'left': (0-stepNum * $('body').width())+'px'
@@ -45,7 +44,8 @@ $(function(){
 
 	}
 
-	$('.nextButton').on('click', $.slideSwitch)
+	$('.nextButton').on('click', $.slideSwitch);
+	$('.slideTo').on('click', $.slideToStep);
 
 	$(window).on('resize', function() {stepNum--; $.slideSwitch();})
 

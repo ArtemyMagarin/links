@@ -10,6 +10,7 @@
     <!-- Bootstrap -->
     <link href="bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="css/carusel.css" rel="stylesheet" type="text/css">
+    <link href="font-awesome/css/font-awesome.min.css" rel="stylesheet" >
 
   </head>
   <body>
@@ -22,7 +23,7 @@
 <div id="step1">
   
     <div class="container">
-      <h1>Step 1 <small>/4</small> <a href="#" class="nextButton">Next</a></h1>
+      <h1>Step 1 <small>/4</small> <a href="#" class="slideTo" data-slideto="2">Next</a></h1>
       <h4>Upload file with HTML or CSS code</h4>
       <hr>
       <div class="row">
@@ -37,7 +38,7 @@
 </div>
 <div id="step2">
     <div class="container">
-      <h1>Step 2 <small>/4</small> <a href="#" class="nextButton">Next</a></h1>
+      <h1>Step 2 <small>/4</small> <a href="#" class="slideTo" id="go-step3" data-slideto="3">Next</a></h1>
       <h4>Input bad-sites</h4>
       <hr>
       <div class="row">
@@ -55,12 +56,12 @@ evil.org"></textarea>
   
 
     <div class="container">
-      <h1>Step 3 <small>/4</small> <a href="#" class="nextButton">Next</a></h1>
+      <h1>Step 3 <small>/4</small> <a href="#" class="slideTo" id="go-step4" data-slideto="4">Next</a></h1>
       <h4>Check links.</h4>
       <hr>
       <div class="row">
         <div class="col">
-          <button onclick="detect(processingData)">Нажми меня!</button>
+         <!--  <button onclick="detect(processingData)">Нажми меня!</button> -->
           <div id="d_main" role="tablist" aria-multiselectable="true">
           </div>
         </div>
@@ -69,12 +70,12 @@ evil.org"></textarea>
 </div>
 <div id="step4">
     <div class="container">
-      <h1>Step 4 <small>/4</small> <a href="#" class="nextButton">Next</a></h1>
+      <h1>Step 4 <small>/4</small> <a href="#" class="slideTo" data-slideto="1">Next</a></h1>
       <h4>Download customized file</h4>
       <hr>
       <div class="row">
         <div class="col">
-          
+          <a id="save" class="btn btn-primary btn-lg active" role="button" aria-pressed="true"><i class="fa fa-download" aria-hidden="true"></i> Download</a>
         </div>
       </div>  
     </div>
