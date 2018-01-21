@@ -26,11 +26,13 @@ var processingData = function(text) {
     
     let links_info = {};  
     let links = [];  
-    let raw_links = text.match(exp);
+    let raw_links = text.match(exp).map((item)=>{
+        return item.replace(/\/$/, '')
+    });
 
     raw_links.forEach((item)=>{
         links_info[item] = [item.replace(/(https?)?(ftp)?(:\/\/)?(www\.)?/ig,"")];
-        links.push(item.replace(/(https?)?(ftp)?(:\/\/)?(www\.)?/ig,""))
+        item.replace(/(https?)?(ftp)?(:\/\/)?(www\.)?/ig,"").replace(/\/$/i, '')&&links.push(item.replace(/(https?)?(ftp)?(:\/\/)?(www\.)?/ig,"").replace(/\/$/i, ''))
     })
 
     links_tree = getLinksTree(links);
@@ -117,10 +119,10 @@ var getLinksTree = function(links) {
 
     links_tree = links
         .map((item) => {
-            return item.replace(/[\/?]+.+/ig,'').match(/[\w\dа-яА-ЯёЁ]{1,}\.[\wа-яА-ЯёЁ]{2,4}$/ig)
+            return item.replace(/[\/?]+.+/ig,'').match(/[\w\dа-яА-ЯёЁ]+\.[\wа-яА-ЯёЁ]{2,6}$/ig)
         })
         .reduce((data, current)=>{
-            data[current] = [];
+            current==null || (data[current] = []);
             return data
         }, {});
 
@@ -288,7 +290,7 @@ var replaceLink = function(links_info, old_link, new_link) {
 var getReplacedText = function(text, links_info) {
     for (key in links_info) {
 
-        if (links_info[key][0] == links_info[key][1]) {
+        if (!links_info[key][1] || links_info[key][0] == links_info[key][1]) {
             continue
         }
         
